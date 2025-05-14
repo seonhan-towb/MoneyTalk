@@ -1,0 +1,201 @@
+package com.towb.app.moneytalk.ui.calendar
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.towb.app.moneytalk.data.model.CalendarDayOfWeek
+import com.towb.app.moneytalk.data.model.CalendarInitData
+import com.towb.app.moneytalk.ui.component.DropdownMenuBox
+import com.towb.app.moneytalk.ui.theme.MoneyTalkTheme
+import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
+import java.time.LocalDate
+import java.time.YearMonth
+
+@AndroidEntryPoint
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            MoneyTalkTheme {
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    Box(modifier = Modifier.padding(innerPadding)) {
+                        MainCalendar(
+                            modifier = Modifier.fillMaxSize()
+                        ) { selectedDate ->
+                            Timber.tag(this.javaClass.simpleName).e("selectedDate : ${selectedDate}")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun MainCalendar(
+    modifier: Modifier = Modifier,
+    currentDate: LocalDate = LocalDate.now(),
+    config: CalendarInitData = CalendarInitData(),
+    onSelectedDate: (LocalDate) -> Unit
+) {
+    val calendarModel: CalendarViewModel = hiltViewModel()
+
+    val selectedDate by calendarModel.selectedDate.collectAsState()
+    val timeTableMap by calendarModel.timeTable.collectAsState()
+
+    var selectedYearMonth by remember { mutableStateOf(YearMonth.of(currentDate.year, currentDate.month)) }
+    var startDayOfWeek by remember { mutableStateOf(0) } // 0 = Sunday, 1 = Monday
+
+    // 해당 월의 날짜 구성
+    val daysInMonth = (1..selectedYearMonth.lengthOfMonth()).map { day ->
+        LocalDate.of(selectedYearMonth.year, selectedYearMonth.month, day)
+    }
+
+    // 선택된 시작 요일(일요일 또는 월요일)을 기준으로 해당 월이 어떤 요일로 시작하는지 결정
+    val firstDayOfWeek = daysInMonth.first().dayOfWeek.value
+    val adjustedStartDay = if (startDayOfWeek == 1) {
+        (firstDayOfWeek - 1 + 7) % 7    // 월요일을 첫 번째 요일로 설정하기 위해 날짜 이동
+    } else {
+        firstDayOfWeek % 7              // 일요일을 한 주의 첫 번째 요일로 사용
+    }
+
+    // 월의 첫 번째 날 전까지 몇 개의 null 날짜를 채워야 하는지 계산
+    val startPadding = adjustedStartDay
+    val endPadding = (7 - (startPadding + daysInMonth.size) % 7) % 7
+    val calendarDays = List(startPadding) { null } + daysInMonth + List(endPadding) { null }
+
+    // 월과 년 선택 옵션
+    val months = java.time.Month.entries.map { it.name.lowercase().replaceFirstChar { c -> c.titlecase() } }
+    val years = config.yearRange.toList()
+
+    val today = LocalDate.now()
+    val displayDate = selectedDate ?: today // 선택된 날짜 없으면 오늘 날짜 사용
+
+    Column(
+        modifier = Modifier.fillMaxSize().padding(16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            DropdownMenuBox(
+                options = months,
+                selectedOption = selectedYearMonth.month.name.lowercase().replaceFirstChar { it.titlecase() },
+                onOptionSelected = { selectedMonth ->
+                    selectedYearMonth = YearMonth.of(selectedYearMonth.year, java.time.Month.valueOf(selectedMonth.uppercase()))
+                }
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            DropdownMenuBox(
+                options = years.map { it.toString() },
+                selectedOption = selectedYearMonth.year.toString(),
+                onOptionSelected = { selectedYear ->
+                    selectedYearMonth = YearMonth.of(selectedYear.toInt(), selectedYearMonth.month)
+                }
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            DropdownMenuBox(
+                options = listOf("Sunday", "Monday"),
+                selectedOption = if (startDayOfWeek == 1) "Monday" else "Sunday",
+                onOptionSelected = { selectedDay ->
+                    startDayOfWeek = if (selectedDay == "Monday") 1 else 0
+                }
+            )
+        }
+
+        // 요일 헤더 생성 (선택된 시작 요일에 맞게 조정)
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            val weekDays = CalendarDayOfWeek.getWeekDays(startDayOfWeek)
+            weekDays.forEach { day ->
+                Text(
+                    text = day.take(3),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+        }
+
+        // 캘린더 그리드 생성
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth().height(300.dp)
+        ) {
+            items(calendarDays.chunked(7)) { week ->
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                    week.forEach { date ->
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clickable {
+                                    date?.let {
+                                        calendarModel.selectDate(it)
+                                        onSelectedDate(it)
+                                    }
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            // 동그라미 표시 (선택된 날짜)
+                            if (date == selectedDate) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .background(
+                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                            shape = CircleShape
+                                        )
+                                ) {
+                                    Text(
+                                        text = date?.dayOfMonth?.toString() ?: "",
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.align(Alignment.Center)
+                                    )
+                                }
+                            } else {
+                                Text(text = date?.dayOfMonth?.toString() ?: "")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(0.dp))
+
+        // 선택된 날짜의 타임 테이블
+        TimeTableView(
+            date = selectedDate,
+            timeTable = timeTableMap[selectedDate] ?: emptyList(),
+            onAddEvent = { calendarModel.addEvent(selectedDate, it) },
+            onDeleteEvent = { calendarModel.deleteEvent(selectedDate, it) }
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CalendarPreview() {
+    MoneyTalkTheme {
+        MainCalendar(
+            modifier = Modifier.fillMaxSize()
+        ) { }
+    }
+}
