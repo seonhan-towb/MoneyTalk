@@ -23,9 +23,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.towb.app.moneytalk.data.model.CalendarDayOfWeek
 import com.towb.app.moneytalk.data.model.CalendarInitData
+import com.towb.app.moneytalk.ui.component.CategoryDropdown
 import com.towb.app.moneytalk.ui.component.DropdownMenuBox
+import com.towb.app.moneytalk.ui.component.TimePickerField
 import com.towb.app.moneytalk.ui.theme.MoneyTalkTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +39,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import timber.log.Timber
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.YearMonth
 
 @AndroidEntryPoint
@@ -41,16 +48,40 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MoneyTalkTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Box(modifier = Modifier.padding(innerPadding)) {
-                        MainCalendar(
-                            modifier = Modifier.fillMaxSize()
-                        ) { selectedDate ->
-                            Timber.tag(this.javaClass.simpleName).e("selectedDate : ${selectedDate}")
-                        }
+                CalendarNavHost()
+            }
+        }
+    }
+}
+
+@Composable
+fun CalendarNavHost() {
+    val navController = rememberNavController()
+
+    NavHost(navController, "Calendar") {
+
+        composable("Calendar") {
+            Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Box(modifier = Modifier.padding(innerPadding)) {
+                    MainCalendar(
+                        modifier = Modifier.fillMaxSize(),
+                        navController = navController,
+                    ) { selectedDate ->
+                        Timber.tag(this.javaClass.simpleName).e("selectedDate : ${selectedDate}")
                     }
                 }
             }
+        }
+
+        composable("AddEvent") {
+            AddEventScreen(
+                onSave = { savedItem ->
+                    navController.popBackStack()
+                },
+                onCancel = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }
@@ -61,6 +92,7 @@ fun MainCalendar(
     currentDate: LocalDate = LocalDate.now(),
     config: CalendarInitData = CalendarInitData(),
     calendarModel: CalendarViewModel = hiltViewModel(),
+    navController: NavController? = null,
     onSelectedDate: (LocalDate) -> Unit,
 ) {
 
@@ -189,6 +221,7 @@ fun MainCalendar(
         TimeTableView(
             date = selectedDate,
             timeTable = timeTableMap[selectedDate] ?: emptyList(),
+            onAddEventClick = { navController?.navigate("AddEvent") },
             onDeleteEvent = { calendarModel.deleteEvent(selectedDate, it) }
         )
     }
@@ -207,8 +240,8 @@ class FakeCalendarViewModel(context: Context)
     private val _timeTable = MutableStateFlow(
         mapOf(
             LocalDate.of(2025, 5, 19) to listOf(
-                "09:00 - 팀 미팅",
-                "12:30 - 점심",
+                "09:00 - 회의",
+                "12:30 - 점심 식사",
                 "15:00 - 클라이언트 콜"
             )
         )
@@ -261,5 +294,42 @@ fun TimeTableViewPreview() {
         date = dummyDate,
         timeTable = dummyEvents,
         onDeleteEvent = {}
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AddEventScreenPreview() {
+    MoneyTalkTheme {
+        AddEventScreen(
+            onSave = { println("저장됨: $it") },
+            onCancel = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CategoryDropdownPreview() {
+    var selectedCategory by remember { mutableStateOf("식비") }
+    val options = listOf("식비", "교통", "문화", "기타")
+
+    MoneyTalkTheme {
+        CategoryDropdown(
+            selectedCategory = selectedCategory,
+            options = options,
+            onCategorySelected = { selectedCategory = it }
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TimePickerFieldPreview() {
+    var time by remember { mutableStateOf(LocalTime.of(14, 30)) }
+
+    TimePickerField(
+        selectedTime = time,
+        onTimeSelected = { time = it }
     )
 }

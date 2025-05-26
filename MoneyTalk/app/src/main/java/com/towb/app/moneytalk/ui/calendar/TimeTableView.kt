@@ -1,7 +1,9 @@
 package com.towb.app.moneytalk.ui.calendar
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -10,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -26,6 +29,7 @@ import java.time.LocalDate
 fun TimeTableView(
     date: LocalDate,
     timeTable: List<String>,
+    onAddEventClick: () -> Unit = {},
     onDeleteEvent: (String) -> Unit
 ) {
     Column(
@@ -33,11 +37,27 @@ fun TimeTableView(
             .fillMaxWidth()
             .padding(top = 8.dp)
     ) {
-        Text(
-            text = "${date.year}년 ${date.monthValue}월 ${date.dayOfMonth}일",
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "${date.year}년 ${date.monthValue}월 ${date.dayOfMonth}일",
+                style = MaterialTheme.typography.headlineSmall,
+            )
+
+            Button(
+                onClick = onAddEventClick,
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                shape = MaterialTheme.shapes.small
+            ) {
+                Text("소비 추가")
+            }
+        }
+
 
         Box(
             modifier = Modifier
