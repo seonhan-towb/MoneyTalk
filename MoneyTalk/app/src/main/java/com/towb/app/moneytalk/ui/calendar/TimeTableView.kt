@@ -23,14 +23,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.towb.app.moneytalk.data.model.EventItem
 import java.time.LocalDate
 
 @Composable
 fun TimeTableView(
     date: LocalDate,
-    timeTable: List<String>,
+    timeTable: List<EventItem>,
     onAddEventClick: () -> Unit = {},
-    onDeleteEvent: (String) -> Unit
+    onDeleteEvent: (EventItem) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -65,7 +66,7 @@ fun TimeTableView(
                 .heightIn(min = 100.dp, max = 300.dp)
         ) {
             LazyColumn {
-                items(timeTable) { event ->
+                items(timeTable) { item ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -78,12 +79,17 @@ fun TimeTableView(
                                 .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = event,
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.weight(1f)
-                            )
-                            IconButton(onClick = { onDeleteEvent(event) }) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = item.eventTitle,
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                                Text(
+                                    text = "${item.eventPrice}원 · ${item.eventTime}",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                            IconButton(onClick = { onDeleteEvent(item) }) {
                                 Icon(imageVector = Icons.Default.Delete, contentDescription = "삭제")
                             }
                         }

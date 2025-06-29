@@ -1,6 +1,5 @@
 package com.towb.app.moneytalk.ui.calendar
 
-import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,7 +18,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -29,14 +27,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.towb.app.moneytalk.data.model.CalendarDayOfWeek
 import com.towb.app.moneytalk.data.model.CalendarInitData
+import com.towb.app.moneytalk.data.model.EventItem
 import com.towb.app.moneytalk.ui.component.CategoryDropdown
 import com.towb.app.moneytalk.ui.component.DropdownMenuBox
 import com.towb.app.moneytalk.ui.component.TimePickerField
 import com.towb.app.moneytalk.ui.theme.MoneyTalkTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
 import timber.log.Timber
 import java.time.LocalDate
 import java.time.LocalTime
@@ -74,16 +70,24 @@ fun CalendarNavHost() {
         }
 
         composable("AddEvent") {
-            AddEventScreen(
-                onSave = { savedItem ->
-                    navController.popBackStack()
-                },
-                onCancel = {
-                    navController.popBackStack()
-                }
-            )
+            AddEventScreenWrapper(navController)
         }
     }
+}
+
+@Composable
+fun AddEventScreenWrapper(navController: NavController) {
+    val viewModel = hiltViewModel<CalendarViewModel>()
+
+    AddEventScreen(
+        onSave = { savedItem ->
+            viewModel.addEvent(savedItem)
+            navController.popBackStack()
+        },
+        onCancel = {
+            navController.popBackStack()
+        }
+    )
 }
 
 @Composable
@@ -97,7 +101,7 @@ fun MainCalendar(
 ) {
 
     val selectedDate by calendarModel.selectedDate.collectAsState()
-    val timeTableMap by calendarModel.timeTable.collectAsState()
+    val eventItems by calendarModel.eventItems.collectAsState()
 
     var selectedYearMonth by remember { mutableStateOf(YearMonth.of(currentDate.year, currentDate.month)) }
     var startDayOfWeek by remember { mutableStateOf(0) } // 0 = Sunday, 1 = Monday
@@ -220,82 +224,106 @@ fun MainCalendar(
         // 선택된 날짜의 타임 테이블
         TimeTableView(
             date = selectedDate,
-            timeTable = timeTableMap[selectedDate] ?: emptyList(),
+            timeTable = eventItems,
             onAddEventClick = { navController?.navigate("AddEvent") },
-            onDeleteEvent = { calendarModel.deleteEvent(selectedDate, it) }
+            onDeleteEvent = { calendarModel.deleteEvent(it) }
         )
     }
 }
-
 
 /**
  * Preview 생성을 위한 더미 ViewModel
+ * 메인 프리뷰 제거
  */
-class FakeCalendarViewModel(context: Context)
-    : CalendarViewModel(context) {
-
-    private val _selectedDate = MutableStateFlow<LocalDate?>(LocalDate.of(2025, 5, 19))
-    override val selectedDate: StateFlow<LocalDate?> = _selectedDate
-
-    private val _timeTable = MutableStateFlow(
-        mapOf(
-            LocalDate.of(2025, 5, 19) to listOf(
-                "09:00 - 회의",
-                "12:30 - 점심 식사",
-                "15:00 - 클라이언트 콜"
-            )
-        )
-    )
-    override val timeTable: StateFlow<Map<LocalDate, List<String>>> = _timeTable
-
-    override fun selectDate(date: LocalDate) {
-        _selectedDate.value = date
-    }
-
-    override fun deleteEvent(date: LocalDate, event: String) {
-        _timeTable.update {
-            it.toMutableMap().apply { get(date)?.let { list -> put(date, list - event) } }
-        }
-    }
-}
-
-@Preview(
-    showBackground = true,
-    backgroundColor = 0xFFFFFF
-)
-@Composable
-fun MainCalendarPreview() {
-    MoneyTalkTheme {
-        val context = LocalContext.current
-        val fakeVM = remember { FakeCalendarViewModel(context) }
-
-        MainCalendar(
-            modifier = Modifier.fillMaxSize(),
-            currentDate = LocalDate.of(2025, 5, 19),
-            config = CalendarInitData(
-                yearRange = 2020..2030
-            ),
-            onSelectedDate = {},
-            calendarModel = fakeVM
-        )
-    }
-}
+//class FakeCalendarViewModel(context: Context)
+//    : CalendarViewModel(context) {
+//
+//    private val _selectedDate = MutableStateFlow<LocalDate?>(LocalDate.of(2025, 5, 19))
+//    override val selectedDate: StateFlow<LocalDate?> = _selectedDate
+//
+//    private val _timeTable = MutableStateFlow(
+//        mapOf(
+//            LocalDate.of(2025, 5, 19) to listOf(
+//                "09:00 - 회의",
+//                "12:30 - 점심 식사",
+//                "15:00 - 클라이언트 콜"
+//            )
+//        )
+//    )
+//    override val timeTable: StateFlow<Map<LocalDate, List<String>>> = _timeTable
+//
+//    override fun selectDate(date: LocalDate) {
+//        _selectedDate.value = date
+//    }
+//
+//    override fun deleteEvent(date: LocalDate, event: String) {
+//        _timeTable.update {
+//            it.toMutableMap().apply { get(date)?.let { list -> put(date, list - event) } }
+//        }
+//    }
+//}
+//
+//@Preview(
+//    showBackground = true,
+//    backgroundColor = 0xFFFFFF
+//)
+//@Composable
+//fun MainCalendarPreview() {
+//    MoneyTalkTheme {
+//        val context = LocalContext.current
+//        val fakeVM = remember { FakeCalendarViewModel(context) }
+//
+//        MainCalendar(
+//            modifier = Modifier.fillMaxSize(),
+//            currentDate = LocalDate.of(2025, 5, 19),
+//            config = CalendarInitData(
+//                yearRange = 2020..2030
+//            ),
+//            onSelectedDate = {},
+//            calendarModel = fakeVM
+//        )
+//    }
+//}
 
 @Preview(showBackground = true)
 @Composable
 fun TimeTableViewPreview() {
     val dummyDate = LocalDate.of(2025, 5, 19)
     val dummyEvents = listOf(
-        "09:00 - 회의",
-        "12:30 - 점심 식사",
-        "15:00 - 클라이언트 콜"
+        EventItem(
+            id = 1,
+            eventTitle = "회의",
+            eventPrice = 0,
+            eventCategory = "업무",
+            eventTime = LocalTime.of(9, 0),
+            eventDate = dummyDate
+        ),
+        EventItem(
+            id = 2,
+            eventTitle = "점심 식사",
+            eventPrice = 12000,
+            eventCategory = "식비",
+            eventTime = LocalTime.of(12, 30),
+            eventDate = dummyDate
+        ),
+        EventItem(
+            id = 3,
+            eventTitle = "클라이언트 콜",
+            eventPrice = 0,
+            eventCategory = "업무",
+            eventTime = LocalTime.of(15, 0),
+            eventDate = dummyDate
+        )
     )
+
     TimeTableView(
         date = dummyDate,
         timeTable = dummyEvents,
+        onAddEventClick = {},
         onDeleteEvent = {}
     )
 }
+
 
 @Preview(showBackground = true)
 @Composable
