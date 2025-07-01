@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -29,8 +30,10 @@ import com.towb.app.moneytalk.data.model.CalendarDayOfWeek
 import com.towb.app.moneytalk.data.model.CalendarInitData
 import com.towb.app.moneytalk.data.model.EventItem
 import com.towb.app.moneytalk.ui.component.CategoryDropdown
+import com.towb.app.moneytalk.ui.component.CategoryTag
 import com.towb.app.moneytalk.ui.component.DropdownMenuBox
 import com.towb.app.moneytalk.ui.component.TimePickerField
+import com.towb.app.moneytalk.ui.datavisualizer.DataVisualizerScreen
 import com.towb.app.moneytalk.ui.theme.MoneyTalkTheme
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -300,13 +303,13 @@ fun MainCalendar(
 @Preview(showBackground = true)
 @Composable
 fun TimeTableViewPreview() {
-    val dummyDate = LocalDate.of(2025, 5, 19)
+    val dummyDate = LocalDate.of(2025, 7, 21)
     val dummyEvents = listOf(
         EventItem(
             id = 1,
             eventTitle = "회의",
             eventPrice = 0,
-            eventCategory = "업무",
+            eventCategory = "식비",
             eventTime = LocalTime.of(9, 0),
             eventDate = dummyDate
         ),
@@ -314,7 +317,7 @@ fun TimeTableViewPreview() {
             id = 2,
             eventTitle = "점심 식사",
             eventPrice = 12000,
-            eventCategory = "식비",
+            eventCategory = "교통",
             eventTime = LocalTime.of(12, 30),
             eventDate = dummyDate
         ),
@@ -322,7 +325,15 @@ fun TimeTableViewPreview() {
             id = 3,
             eventTitle = "클라이언트 콜",
             eventPrice = 0,
-            eventCategory = "업무",
+            eventCategory = "문화",
+            eventTime = LocalTime.of(15, 0),
+            eventDate = dummyDate
+        ),
+        EventItem(
+            id = 3,
+            eventTitle = "클라이언트 콜",
+            eventPrice = 0,
+            eventCategory = "기타",
             eventTime = LocalTime.of(15, 0),
             eventDate = dummyDate
         )
@@ -373,4 +384,34 @@ fun TimePickerFieldPreview() {
         selectedTime = time,
         onTimeSelected = { time = it }
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CategoryTagPreview() {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.padding(16.dp)
+    ) {
+        CategoryTag(
+            text = "식비",
+            backgroundColor = Color(0xFFFCEEEE)
+        )
+        CategoryTag(
+            text = "교통",
+            backgroundColor = Color(0xFFE3F4F5)
+        )
+        CategoryTag(
+            text = "문화",
+            backgroundColor = Color(0xFFECE8F6)
+        )
+        CategoryTag(
+            text = "기타",
+            backgroundColor = Color(0xFFF0F2F5)
+        )
+        CategoryTag(
+            text = "미분류",
+            backgroundColor = Color(0xFFF0F2F5)
+        )
+    }
 }

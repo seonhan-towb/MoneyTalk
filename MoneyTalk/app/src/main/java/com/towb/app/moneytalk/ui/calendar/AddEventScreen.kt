@@ -112,6 +112,5 @@ fun AddEventScreen(
                 time = it
             }
         }
-
     }
 }
