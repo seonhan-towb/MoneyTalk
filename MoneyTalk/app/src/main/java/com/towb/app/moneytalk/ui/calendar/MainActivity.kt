@@ -178,7 +178,9 @@ fun MainCalendar(
 
         // 캘린더 그리드 생성
         LazyColumn(
-            modifier = Modifier.fillMaxWidth().height(300.dp)
+            modifier = Modifier.fillMaxWidth()
+                .wrapContentHeight()
+                .heightIn(max = 300.dp)
         ) {
             items(calendarDays.chunked(7)) { week ->
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
@@ -219,7 +221,7 @@ fun MainCalendar(
             }
         }
 
-        Spacer(modifier = Modifier.height(0.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // 선택된 날짜의 타임 테이블
         TimeTableView(

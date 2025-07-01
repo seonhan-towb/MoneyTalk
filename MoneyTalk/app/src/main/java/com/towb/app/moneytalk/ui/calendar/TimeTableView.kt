@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.towb.app.moneytalk.data.model.EventItem
+import com.towb.app.moneytalk.utils.PriceFormatter
 import java.time.LocalDate
 
 @Composable
@@ -55,17 +56,16 @@ fun TimeTableView(
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
                 shape = MaterialTheme.shapes.small
             ) {
-                Text("소비 추가")
+                Text("추가")
             }
         }
 
-
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 100.dp, max = 300.dp)
+            modifier = Modifier.fillMaxWidth().wrapContentHeight()
         ) {
-            LazyColumn {
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth().wrapContentHeight()
+            ) {
                 items(timeTable) { item ->
                     Card(
                         modifier = Modifier
@@ -85,7 +85,7 @@ fun TimeTableView(
                                     style = MaterialTheme.typography.bodyLarge
                                 )
                                 Text(
-                                    text = "${item.eventPrice}원 · ${item.eventTime}",
+                                    text = "${PriceFormatter.format(item.eventPrice)} · ${item.eventTime}",
                                     style = MaterialTheme.typography.bodySmall
                                 )
                             }
