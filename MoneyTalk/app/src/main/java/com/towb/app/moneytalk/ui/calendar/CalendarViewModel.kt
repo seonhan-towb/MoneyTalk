@@ -43,11 +43,13 @@ open class CalendarViewModel @Inject constructor(
     open val timeTable = _timeTable.asStateFlow()
 
     open fun selectDate(date: LocalDate) {
+        Timber.tag(this.javaClass.simpleName).d("selectDate, date $date")
+
         _selectedDate.value = date
     }
 
     fun addEvent(event: EventItem) {
-        Timber.tag("[test]").e("addEvent, event $event")
+        Timber.tag(this.javaClass.simpleName).d("addEvent, event $event")
 
         viewModelScope.launch {
             eventItemRepository.insert(event)
@@ -55,7 +57,7 @@ open class CalendarViewModel @Inject constructor(
     }
 
     open fun deleteEvent(event: EventItem) {
-        Timber.tag("[test]").e("deleteEvent, event $event")
+        Timber.tag(this.javaClass.simpleName).d("deleteEvent, event $event")
 
         viewModelScope.launch {
             eventItemRepository.delete(event)

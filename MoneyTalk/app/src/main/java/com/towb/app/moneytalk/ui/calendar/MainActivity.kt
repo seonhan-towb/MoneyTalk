@@ -63,23 +63,33 @@ fun CalendarNavHost() {
                         modifier = Modifier.fillMaxSize(),
                         navController = navController,
                     ) { selectedDate ->
-                        Timber.tag(this.javaClass.simpleName).e("selectedDate : ${selectedDate}")
+                        Timber.tag(this.javaClass.simpleName).d("선택된 날짜 : $selectedDate")
                     }
                 }
             }
         }
 
-        composable("AddEvent") {
-            AddEventScreenWrapper(navController)
+        composable("AddEvent/{date}") { backStackEntry ->
+            val dateString = backStackEntry.arguments?.getString("date")
+            val selectedDate = dateString?.let { LocalDate.parse(it) } ?: LocalDate.now()
+
+            AddEventScreenWrapper(
+                navController = navController,
+                selectedDate = selectedDate
+            )
         }
     }
 }
 
 @Composable
-fun AddEventScreenWrapper(navController: NavController) {
+fun AddEventScreenWrapper(
+    navController: NavController,
+    selectedDate: LocalDate
+) {
     val viewModel = hiltViewModel<CalendarViewModel>()
 
     AddEventScreen(
+        selectedDate = selectedDate,
         onSave = { savedItem ->
             viewModel.addEvent(savedItem)
             navController.popBackStack()
@@ -227,7 +237,7 @@ fun MainCalendar(
         TimeTableView(
             date = selectedDate,
             timeTable = eventItems,
-            onAddEventClick = { navController?.navigate("AddEvent") },
+            onAddEventClick = { navController?.navigate("AddEvent/${selectedDate}") },
             onDeleteEvent = { calendarModel.deleteEvent(it) }
         )
     }
@@ -332,6 +342,7 @@ fun TimeTableViewPreview() {
 fun AddEventScreenPreview() {
     MoneyTalkTheme {
         AddEventScreen(
+            selectedDate = LocalDate.of(2025, 7, 23),
             onSave = { println("저장됨: $it") },
             onCancel = {}
         )

@@ -36,8 +36,9 @@ import java.time.temporal.ChronoUnit
 
 @Composable
 fun AddEventScreen(
+    selectedDate: LocalDate,
     onSave: (EventItem) -> Unit = {},
-    onCancel: () -> Unit = {}
+    onCancel: () -> Unit = {},
 ) {
     var title by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
@@ -68,7 +69,7 @@ fun AddEventScreen(
                             eventPrice = price.toIntOrNull() ?: 0,
                             eventCategory = selectedCategory,
                             eventTime = time,
-                            eventDate = LocalDate.now()
+                            eventDate = selectedDate
                         )
                     )
                 },
