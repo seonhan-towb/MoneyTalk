@@ -32,6 +32,7 @@ import com.towb.app.moneytalk.ui.component.CategoryDropdown
 import com.towb.app.moneytalk.ui.component.TimePickerField
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.temporal.ChronoUnit
 
 @Composable
 fun AddEventScreen(
@@ -40,7 +41,9 @@ fun AddEventScreen(
 ) {
     var title by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
-    var time by remember { mutableStateOf(LocalTime.now()) }
+    var time by remember {
+        mutableStateOf(LocalTime.now().truncatedTo(ChronoUnit.MINUTES))
+    }
 
     val categoryOptions = listOf("식비", "교통", "문화", "기타")
     var selectedCategory by remember { mutableStateOf("식비") }
