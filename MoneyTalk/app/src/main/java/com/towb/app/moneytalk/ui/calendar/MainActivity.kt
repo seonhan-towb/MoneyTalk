@@ -28,13 +28,18 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.towb.app.moneytalk.data.model.CalendarDayOfWeek
 import com.towb.app.moneytalk.data.model.CalendarInitData
+import com.towb.app.moneytalk.data.model.ConsumptionCategory
+import com.towb.app.moneytalk.data.model.ConsumptionData
 import com.towb.app.moneytalk.data.model.EventItem
 import com.towb.app.moneytalk.ui.component.CategoryDropdown
 import com.towb.app.moneytalk.ui.component.CategoryTag
 import com.towb.app.moneytalk.ui.component.DropdownMenuBox
 import com.towb.app.moneytalk.ui.component.TimePickerField
 import com.towb.app.moneytalk.ui.datavisualizer.DataVisualizerScreen
+import com.towb.app.moneytalk.ui.datavisualizer.StatisticsContent
+import com.towb.app.moneytalk.ui.datavisualizer.StatisticsTabRow
 import com.towb.app.moneytalk.ui.theme.MoneyTalkTheme
+import com.towb.app.moneytalk.utils.PriceFormatter
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import java.time.LocalDate
@@ -79,6 +84,18 @@ fun CalendarNavHost() {
             AddEventScreenWrapper(
                 navController = navController,
                 selectedDate = selectedDate
+            )
+        }
+
+        composable("DataVisualizer") { backStackEntry ->
+            val dateString = backStackEntry.arguments?.getString("date")
+            val selectedDate = dateString?.let { LocalDate.parse(it) } ?: LocalDate.now()
+
+            DataVisualizerScreen(
+                selectedDate,
+                onCancel = {
+                    navController.popBackStack()
+                }
             )
         }
     }
@@ -240,6 +257,7 @@ fun MainCalendar(
         TimeTableView(
             date = selectedDate,
             timeTable = eventItems,
+            onVisualizerClick = { navController?.navigate("DataVisualizer")},
             onAddEventClick = { navController?.navigate("AddEvent/${selectedDate}") },
             onDeleteEvent = { calendarModel.deleteEvent(it) }
         )
@@ -342,6 +360,7 @@ fun TimeTableViewPreview() {
     TimeTableView(
         date = dummyDate,
         timeTable = dummyEvents,
+        onVisualizerClick = {},
         onAddEventClick = {},
         onDeleteEvent = {}
     )
@@ -353,12 +372,21 @@ fun TimeTableViewPreview() {
 fun AddEventScreenPreview() {
     MoneyTalkTheme {
         AddEventScreen(
-            selectedDate = LocalDate.of(2025, 7, 23),
+            selectedDate = LocalDate.of(2025, 7, 21),
             onSave = { println("저장됨: $it") },
             onCancel = {}
         )
     }
 }
+
+//@Preview(showBackground = true)
+//@Composable
+//fun DataVisualizerScreenPreview() {
+//    DataVisualizerScreen(
+//        selectedDate = LocalDate.of(2025, 7, 21),
+//        onCancel = {}
+//    )
+//}
 
 @Preview(showBackground = true)
 @Composable
@@ -415,3 +443,38 @@ fun CategoryTagPreview() {
         )
     }
 }
+
+@Preview(showBackground = true, name = "일간 선택")
+@Composable
+fun PreviewTabRowDaily() {
+    StatisticsTabRow(title = "2025년 7월 11일 기준", selectedTab = "일간", onTabSelected = {})
+}
+
+@Preview(showBackground = true, name = "월간 선택")
+@Composable
+fun PreviewTabRowMonthly() {
+    StatisticsTabRow(title = "2025년 7월 기준", selectedTab = "월간", onTabSelected = {})
+}
+
+@Preview(showBackground = true, name = "연간 선택")
+@Composable
+fun PreviewTabRowYearly() {
+    StatisticsTabRow(title = "2025년 기준", selectedTab = "연간", onTabSelected = {})
+}
+
+private val previewDailyData = ConsumptionData(
+    totalAmount = "총 소비 ${PriceFormatter.format(699444)}원",
+    categories = listOf(
+        ConsumptionCategory("식비", 4, Color(0xFFF8C8C8)),
+        ConsumptionCategory("문화", 72, Color(0xFFB9AEE5)),
+        ConsumptionCategory("교통", 21, Color(0xFFA8DADB)),
+        ConsumptionCategory("기타", 3, Color(0xFFBFC4CC))
+    )
+)
+
+@Preview(showBackground = true, name = "Statistics - 일간")
+@Composable
+fun PreviewStatisticsContentDaily() {
+    StatisticsContent(data = previewDailyData)
+}
+

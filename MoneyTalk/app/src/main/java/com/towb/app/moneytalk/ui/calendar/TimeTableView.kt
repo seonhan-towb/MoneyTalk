@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -35,6 +34,7 @@ import java.time.LocalDate
 fun TimeTableView(
     date: LocalDate,
     timeTable: List<EventItem>,
+    onVisualizerClick: () -> Unit = {},
     onAddEventClick: () -> Unit = {},
     onDeleteEvent: (EventItem) -> Unit
 ) {
@@ -55,12 +55,24 @@ fun TimeTableView(
                 style = MaterialTheme.typography.headlineSmall,
             )
 
-            Button(
-                onClick = onAddEventClick,
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-                shape = MaterialTheme.shapes.small
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Text("추가")
+                Button(
+                    onClick = onVisualizerClick,
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                    shape = MaterialTheme.shapes.small
+                ) {
+                    Text("통계")
+                }
+
+                Button(
+                    onClick = onAddEventClick,
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                    shape = MaterialTheme.shapes.small
+                ) {
+                    Text("추가")
+                }
             }
         }
 
