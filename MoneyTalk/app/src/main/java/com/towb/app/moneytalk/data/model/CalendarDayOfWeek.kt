@@ -11,3 +11,7 @@ enum class CalendarDayOfWeek {
         }
     }
 }
+
+enum class StatisticsType {
+    Daily, Monthly, Yearly
+}

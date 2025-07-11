@@ -14,4 +14,9 @@ class EventItemRepository (
 
     fun getTodayEventItems(date: LocalDate): Flow<List<EventItem>> = dao.getEventsByDate(date)
 
+    suspend fun getDailySummary(date: LocalDate) = dao.getDailySummary(date)
+
+    suspend fun getMonthlySummary(date: LocalDate) = dao.getMonthlySummary(date)
+
+    suspend fun getYearlySummary(date: LocalDate) = dao.getYearlySummary(date)
 }
