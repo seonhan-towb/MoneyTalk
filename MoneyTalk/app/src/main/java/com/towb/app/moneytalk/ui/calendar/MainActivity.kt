@@ -36,10 +36,10 @@ import com.towb.app.moneytalk.ui.component.CategoryTag
 import com.towb.app.moneytalk.ui.component.DropdownMenuBox
 import com.towb.app.moneytalk.ui.component.TimePickerField
 import com.towb.app.moneytalk.ui.datavisualizer.DataVisualizerScreen
+import com.towb.app.moneytalk.ui.datavisualizer.EmptyStatisticsView
 import com.towb.app.moneytalk.ui.datavisualizer.StatisticsContent
 import com.towb.app.moneytalk.ui.datavisualizer.StatisticsTabRow
 import com.towb.app.moneytalk.ui.theme.MoneyTalkTheme
-import com.towb.app.moneytalk.utils.PriceFormatter
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import java.time.LocalDate
@@ -463,7 +463,7 @@ fun PreviewTabRowYearly() {
 }
 
 private val previewDailyData = ConsumptionData(
-    totalAmount = "총 소비 ${PriceFormatter.format(699444)}원",
+    totalAmount = "6954444",
     categories = listOf(
         ConsumptionCategory("식비", 4, Color(0xFFF8C8C8)),
         ConsumptionCategory("문화", 72, Color(0xFFB9AEE5)),
@@ -472,9 +472,15 @@ private val previewDailyData = ConsumptionData(
     )
 )
 
-@Preview(showBackground = true, name = "Statistics - 일간")
+@Preview(showBackground = true, name = "StatisticsContent - 일간")
 @Composable
 fun PreviewStatisticsContentDaily() {
     StatisticsContent(data = previewDailyData)
+}
+
+@Preview(showBackground = true, name = "StatisticsContent - 일간")
+@Composable
+fun PreviewEmptyStatisticsContentDaily() {
+    EmptyStatisticsView()
 }
 

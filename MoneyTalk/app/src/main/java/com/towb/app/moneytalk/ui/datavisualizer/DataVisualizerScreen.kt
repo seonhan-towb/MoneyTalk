@@ -154,7 +154,40 @@ fun StatisticsTabRow(
 }
 
 @Composable
+fun EmptyStatisticsView() {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(bottom = 100.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "👛",
+            fontSize = MaterialTheme.typography.displayLarge.fontSize
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = "소비 기록이 없습니다",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "오늘은 알뜰하게 보내셨네요!",
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.Gray
+        )
+    }
+}
+
+@Composable
 fun StatisticsContent(data: ConsumptionData) {
+    if (data.totalAmount <= "0" || data.categories.isEmpty()) {
+        EmptyStatisticsView()
+        return
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -189,7 +222,7 @@ fun StatisticsContent(data: ConsumptionData) {
             }
         }
 
-        Spacer(modifier = Modifier.height(25.dp))
+        Spacer(modifier = Modifier.height(40.dp))
 
         Text(
             text = "총 소비 ${PriceFormatter.format(data.totalAmount.toInt())}",
